@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+
+<head lang="en">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1.0" />
+    <title>test</title>
+    <style>
+        html, body {
+            padding: 0;
+            margin: 0;
+        }
+        canvas {
+            width: 100%;
+            background:#ccc
+        }
+        button {
+            float: left;
+        }
+    </style>
+</head>
+
+<body>
+    <button id="btn">start</button>
+    <canvas id="myCanvas">浏览器不支持canvas</canvas>
+    <canvas id="example"></canvas>
+    <script src="https://code.createjs.com/1.0.0/createjs.min.js"></script>
+    <script type="text/javascript">
+    var canvas=document.getElementById("example");
+    var ctx=canvas.getContext("2d");
+    var cvs = document.querySelector('#myCanvas'),
+        screenW =  document.body.clientWidth,
+        screenH = document.body.clientHeight;
+    cvs.width = canvas.width = screenW * 2;
+    cvs.height = canvas.height = (1280 / 750) * cvs.width;
+    var stage = new createjs.Stage(cvs);
+    var pointContainer = new  createjs.Container();
+    createjs.Ticker.on('tick', function() {
+        stage.update();
+    });
+    
+    // 图片
+    var picBitmap;
+    var img = new Image();
+    img.src = './img/p2_title2.png';
+    img.onload = function(e) {
+        picBitmap = new createjs.Bitmap(e.target);
+        picBitmap.name = 'pic';
+        picBitmap.scaleX = 0.5;
+        picBitmap.scaleY = 0.5;
+        picBitmap.x = 100;
+        picBitmap.y = 100;
+        picBitmap.alpha = 0;
+        stage.addChild(picBitmap);
+        stage.setChildIndex(picBitmap,1);
+        stage.setChildIndex(pointContainer,2);
+    }
+    // 粒子
+    var pointArr = [];
+    var configImg = {
+        src: './img/p2_title2.png',
+        gap: 8,
+        // w: 229.5,
+        // h: 145,
+        x: 20,
+        y: 20
+    }
+    getImgPixels('example', configImg,  function(pixels) {
+        setDiffuse(pixels);
+    });
+    document.getElementById('btn').addEventListener('click', function() {
+        setSplice();
+    });
+    function getImgPixels(cvsId, obj, cb) {
+        var canvas = document.getElementById(cvsId),
+            ctx = canvas.getContext("2d"),
+            img = new Image(),
+            imgW = 0,
+            imgH = 0,
+            scaleRatio = obj.scaleRatio || 1,
+            gap = obj.gap ? obj.gap : 1,
+            imgData;
+        img.src = obj.src;
+        img.onload = function() {
+            imgW = obj.w || this.width;
+            imgH = obj.h || this.height;
+            ctx.drawImage(this, obj.x || 0, obj.y || 0, imgW, imgH);
+            imgData = ctx.getImageData(obj.x || 0, obj.y || 0, imgW, imgH);
+            progress(imgData);
+        }
+        function progress(imgData) {
+            var pos = 0,
+                data = imgData.data,
+                eleColor = '',
+                pixel = {},
+                pixelsArr = [];
+            for(var i=0;i<imgH;i=i+gap){
+                for(var j=0;j<imgW;j=j+gap){
+                    pos=[(i-1)*imgW+(j-1)]*4 + gap; //取得像素位置
+                    if(data[pos]>=0 && data[pos+3]>0){
+                        pixel={
+                            x:j, //重新设置每个像素的位置信息
+                            y:i, //重新设置每个像素的位置信息
+                            fillStyle: 'rgba('+data[pos]+','+(data[pos+1])+','+(data[pos+2])+','+(data[pos+3])+')'     // 四个值组成一个rgba值
+                        }
+                        pixelsArr.push(pixel);
+                    }
+                }
+            }
+            console.log(pixelsArr)
+            cb && cb(pixelsArr);
+        }
+    }
+    function setDiffuse(pixels) {
+        var len = pixels.length,
+            curr_pixel = null,
+            eleW = 3,
+            n = 0, x = 0, y = 0, randomX = 0, randomY = 0,    // x [0 , canvas.width-eleW]; y [0, canvas.height-eleW]
+            xMax = canvas.width-eleW,
+            yMax = canvas.height-eleW,
+            shape;         
+        
+        for (var i = 0; i < len; i++) {
+            curr_pixel = pixels[i]
+            shape = new createjs.Shape();
+            shape.graphics.beginFill('#fff').drawRect(0, 0, eleW, eleW);     // #f38e0e
+            shape.alpha = 1;
+            shape.x = Math.floor(Math.random() * xMax) + 750;
+            shape.y = Math.floor(Math.random() * yMax) + 500;
+            shape.targetPos = {
+                x: curr_pixel.x,
+                y: curr_pixel.y
+            }
+            
+            shape.name = 'dot' + n++;
+            pointArr.push(shape);
+            pointContainer.addChild(shape);
+            pointContainer.setChildIndex(shape,2);
+        }
+        stage.addChild(pointContainer);    
+    }
+    function setSplice() {
+        var objects = pointArr,
+            n = 0,
+            curr_pixel;       
+        for (var i = 0; i < objects.length; i++) {
+            curr_pixel = objects[i];
+            createjs.Tween.get(pointContainer.getChildByName('dot'+i))
+                .wait(300)      // 动画延迟300ms
+                .to({           // 动画目标值
+                    x: 100 + curr_pixel.targetPos.x * 0.5,
+                    y: 100 + curr_pixel.targetPos.y * 0.5,
+                    alpha: 1
+                }, Math.floor(Math.random() * 500) + 1000)
+                .call(function() {
+                    count(++n)
+                }) // 动画结束回调
+        }
+        function count(n) {
+            if(n >= objects.length - 100) {
+                createjs.Tween.get(stage.getChildByName('pic'))
+                    .to({
+                        alpha: 1
+                    }, 300);
+                createjs.Tween.get(pointContainer)
+                    .to({
+                        alpha: 0
+                    }, 300);
+            }
+        }
+    }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>贝塞尔曲线</title>
+    <style>
+        canvas {
+            background-color: #ccc;
+            width: 500px;
+            height: 300px;
+        }
+        .pic {
+            display: inline-block;
+            position: relative;
+        }
+        .butterfly {
+            display: inline-block;
+            width: 45px;
+            height: 40px;
+            background: url("./img/sprite1.png") 0 0 no-repeat;
+            background-size: 135px 80px;
+            animation: ani-butterfly-red 0.8s step-start infinite;
+            position: absolute;
+            transform: translate3d(-50%, -50%, 0);
+
+        }
+        @keyframes ani-butterfly-red {
+            0% {
+              background-position: 0 0;
+            }
+            15% {
+              background-position: -45px 0;
+            }
+            30% {
+              background-position: -90px 0;
+            }
+            45% {
+              background-position: 0  -40px;
+            }
+            60% {
+                background-position: -45px  -40px;
+            }
+            75% {
+                background-position: -90px  -40px;
+            }
+            100% {
+                background-position: 0 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="quadraticCvs">
+        <h3>二次方贝塞尔曲线</h3>
+        <p>B(t) = (1-t)²P0 + 2t(1-t)P1 + t²P2 &nbsp;&nbsp;<button class="btn1">start cvs point</button><button class="btn2">start pic</button></p>  
+        <div class="pic">
+            <span class="butterfly" style="left: 50px;top: 200px"></span>
+            <canvas></canvas>
+        </div>
+    </div>
+    <div id="cubeCvs">
+        <h3>三次方贝塞尔曲线</h3>
+        <p>B(t) = P0(1-t)³ + 3P1t(1-t)² + 3P2t²(1-t) + P3t³ &nbsp;&nbsp;<button>start</button></p>        
+        <canvas></canvas>
+    </div>
+    <div id="sinCvs">
+        <h3>sin曲线</h3>
+        <p> &nbsp;&nbsp;<button>start</button></p>   
+        <div class="pic">     
+            <span class="butterfly" style="left: 50px;top: 100px"></span>
+            <canvas></canvas>
+        </div>
+    </div>
+    
+    <script>
+        // B(t) = P0(1-t)³ + 3P1t(1-t)² + 3P2t²(1-t) + P3t³  三次方贝塞尔曲线
+        // B(t) = (1-t)²P0 + 2t(1-t)P1 + t²P2  二次方贝塞尔曲线
+
+        window.onload = function() {
+            quadraticInit();
+            cubeInit();
+            sinInit();
+        };
+
+        // 二次方贝塞尔曲线
+        function quadraticInit() {
+            var ctx = cvsInit('quadraticCvs').ctx;
+            var cvs = cvsInit('quadraticCvs').cvs;           
+
+            var t = 0, t2 = 0;
+            var tSpeed = 0.005;
+            var points = [
+                    {x: 50, y: 200},
+                    {x: 125, y: 50},
+                    {x: 350, y: 200},
+                ]; 
+
+            path();  
+
+            document.querySelector('#quadraticCvs .btn1').addEventListener('click', function() {
+                drawQuadratic();
+            });
+
+            document.querySelector('#quadraticCvs .btn2').addEventListener('click', function() {
+                movePic(1000);
+            });
+
+            function movePic(duration) {
+                var target = document.querySelector('#quadraticCvs .butterfly');
+                target.style.left = getBezierCoord(t2, points[0].x,points[1].x,points[2].x) + 'px';
+                target.style.top = getBezierCoord(t2, points[0].y,points[1].y,points[2].y) + 'px';
+
+
+                t2 += tSpeed;
+                if( t2 <= 1 + tSpeed ){
+                    requestAnimationFrame(movePic);
+                }  else {
+                    t2 = 0;
+                }
+            }
+
+            function drawQuadratic(time){
+                ctx.clearRect(0,0,cvs.width,cvs.height);                               
+                
+                // 运动点
+                ctx.beginPath();
+                ctx.fillStyle = 'red';
+                ctx.arc(
+                    getBezierCoord(t, points[0].x,points[1].x,points[2].x),
+                    getBezierCoord(t, points[0].y,points[1].y,points[2].y),
+                    4,0,2*Math.PI,false);
+                ctx.closePath();
+                ctx.fill();
+
+                path();
+
+                t += tSpeed;
+                if( t <= 1 + tSpeed ){
+                    requestAnimationFrame(drawQuadratic);
+                }  else {
+                    t = 0;
+                }
+            }
+            
+            // 路径
+            function path() {
+                // 直线
+                ctx.strokeStyle = '#f0f';
+                ctx.beginPath();
+                ctx.moveTo(points[1].x,points[1].y);
+                ctx.lineTo(points[0].x,points[0].y);
+                ctx.moveTo(points[1].x,points[1].y);
+                ctx.lineTo(points[2].x,points[2].y);
+                ctx.closePath(); 
+                ctx.stroke(); 
+                // 曲线路径
+                ctx.strokeStyle ="#FF5D43";
+                ctx.beginPath();
+                ctx.moveTo(points[0].x,points[0].y);
+                ctx.quadraticCurveTo(points[1].x,points[1].y,points[2].x,points[2].y);
+                ctx.stroke();
+                ctx.closePath();    
+                // 描点
+                points.forEach(function(point,index){
+                    var {
+                        x,y
+                    } = point;
+
+                    ctx.beginPath();
+                    ctx.fillStyle = '#000';
+                    ctx.arc(x,y,2,0,2*Math.PI,false);
+                    ctx.fillText('P' + index + ' ('+ x +', '+ y +')',x,y);
+                    ctx.fill();
+                }); 
+            }
+
+            // 计算点位
+            function getBezierCoord(t,p1,p2,p3){
+                return (
+                    p1 * Math.pow(1 - t,2)
+                    + 2 * p2 * t * Math.pow(1 - t,1) 
+                    + p3 * Math.pow(t,2)
+                )
+            }
+        }
+
+        // 三次方贝塞尔曲线
+        function cubeInit() {
+            var ctx = cvsInit('cubeCvs').ctx;
+            var cvs = cvsInit('cubeCvs').cvs;           
+
+            var t = 0;
+            var tSpeed = 0.005;
+            var points = [
+                    {x: 50, y: 200},
+                    {x: 125, y: 50},
+                    {x: 225, y: 50},
+                    {x: 300, y: 200},
+                ];
+            path();  
+
+            document.querySelector('#cubeCvs button').addEventListener('click', function() {
+                drawCube();
+            });
+
+            function drawCube(time){
+                ctx.clearRect(0,0,cvs.width,cvs.height);
+
+                path();               
+                
+                // 运动点
+                ctx.beginPath();
+                ctx.fillStyle = 'red';
+                ctx.arc(
+                    getBezierCoord(points[0].x,points[1].x,points[2].x, points[3].x),
+                    getBezierCoord(points[0].y,points[1].y,points[2].y, points[3].y),
+                    4,0,2*Math.PI,false);
+                ctx.fill();
+
+                t += tSpeed;
+                if( t <= 1 + tSpeed ){
+                    requestAnimationFrame(drawCube);
+                }  else {
+                    t = 0;
+                }
+            }
+            
+            // 计算点位
+            function getBezierCoord(p1,p2,p3,p4){
+                // B(t) = P1(1-t)³ + 3P2t(1-t)² + 3P3t²(1-t) + P4t³
+                return (
+                    p1 * Math.pow(1 - t,3)
+                    + 3 * p2 * t * Math.pow(1 - t,2) 
+                    + 3 * p3 * (1 - t) * Math.pow(t,2)
+                    + p4 * Math.pow(t,3)
+                )
+            }
+            // 路径
+            function path() {
+                // 直线
+                ctx.strokeStyle = '#f0f';
+                ctx.beginPath();
+                ctx.moveTo(points[0].x,points[0].y);
+                ctx.lineTo(points[1].x,points[1].y);
+                ctx.lineTo(points[2].x,points[2].y);
+                ctx.lineTo(points[3].x,points[3].y);
+                ctx.stroke();  
+                ctx.closePath();
+                // 曲线路径
+                ctx.strokeStyle ="#FF5D43";
+                ctx.beginPath();
+                ctx.moveTo(points[0].x,points[0].y);
+                ctx.bezierCurveTo(points[1].x,points[1].y,points[2].x,points[2].y,points[3].x,points[3].y);
+                ctx.stroke();  
+                ctx.closePath();  
+                // 描点
+                points.forEach(function(point,index){
+                    var {
+                        x,y
+                    } = point;
+
+                    ctx.beginPath();
+                    ctx.fillStyle = '#000';
+                    ctx.arc(x,y,2,0,2*Math.PI,false);
+                    ctx.fillText('P' + index,x,y);
+                    ctx.fill();
+                }); 
+            }
+        }
+
+        function sinInit() {
+            var ctx = cvsInit('sinCvs').ctx;
+            var cvs = cvsInit('sinCvs').cvs; 
+
+            var t = 0;
+            var tSpeed = 0.01; 
+            var xMax = 6.5;
+
+            
+
+            document.querySelector('#sinCvs button').addEventListener('click', function() {
+                moveSin();
+            });
+
+            path();
+
+            function moveSin() {
+                var target = document.querySelector('#sinCvs .butterfly');
+                target.style.left = t*50 + 50 + 'px';
+                target.style.top = Math.sin(t)*50+100 + 'px';
+
+                t += tSpeed;
+                if( t <= xMax ){
+                    requestAnimationFrame(moveSin);
+                }  else {
+                    t = 0;
+                }
+            }
+
+            function path(t) {
+                ctx.beginPath(); 
+                ctx.moveTo(50, 100);
+                for(var i=0; i<xMax; i=i+tSpeed) {
+                    y = Math.sin(i);
+                    ctx.lineTo(i*50 + 50, y*50+100);
+                }
+                ctx.stroke();
+                ctx.closePath();
+            }
+
+        }
+
+        function cvsInit(id) {
+            var cvs = document.querySelector('#'+ id +' canvas');
+            var ctx = cvs.getContext('2d');
+            cvs.width = 500;
+            cvs.height = 300;
+
+            return {cvs: cvs, ctx: ctx};
+        }
+        
+        
+    </script>    
+</body>
+</html>
