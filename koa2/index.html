@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+</head>
+<body>
+  <button id="btn1">insert</button>
+  <button id="btn2">get list</button>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <script>
+    document.querySelector('#btn1').addEventListener('click', function() {
+      axios.post('//192.168.10.165:3000/message/insert', {
+        params: {
+          movieId: 333666,
+          title: 'test4',
+          msg: 'hehe'
+        }
+      })
+      .then(function (response) {
+        console.log(response.data);
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+    });   
+    document.querySelector('#btn2').addEventListener('click', function() {
+      axios.post('//192.168.10.165:3000/message/list', {
+        params: {
+          movieId: 123451,
+        }
+      })
+      .then(function (response) {
+        console.log(response.data);
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+    });  
+    
+  </script>
+  
+</body>
+</html>
