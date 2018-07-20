@@ -9,8 +9,13 @@
 <body>
   <button id="btn1">insert</button>
   <button id="btn2">get list</button>
+  <button id="btn3">create user</button>
+  <button id="btn4">find user</button>
+  <button id="btn5">insert douban list</button>
+  <button id="btn6">find douban in_theaters</button>
   <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
   <script>
+    // 插入
     document.querySelector('#btn1').addEventListener('click', function() {
       axios.post('//192.168.10.165:3000/message/insert', {
         params: {
@@ -26,6 +31,7 @@
         console.log(error);
       });
     });   
+    // 获取列表
     document.querySelector('#btn2').addEventListener('click', function() {
       axios.post('//192.168.10.165:3000/message/list', {
         params: {
@@ -39,6 +45,83 @@
         console.log(error);
       });
     });  
+
+    // 注册 用户
+    document.querySelector('#btn3').addEventListener('click', function() {
+      axios.post('//192.168.10.165:3000/user/create', {
+        params: {
+          name: 'test1',
+          password: '123456'
+        }
+      })
+      .then(function (response) {
+        console.log(response.data);
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+    });     
+
+    // 查询 用户
+    document.querySelector('#btn4').addEventListener('click', function() {
+      axios.post('//192.168.10.165:3000/user/find', {
+        params: {
+          name: 'test2',
+          password: '123456'
+        }
+      })
+      .then(function (response) {
+        console.log(response.data);
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+    }); 
+
+    // 豆瓣 
+    document.querySelector('#btn5').addEventListener('click', function() {
+      axios.get('//api.douban.com/v2/movie/in_theaters', {
+        params: {
+          start: 20,
+          count: 10
+        }
+      })
+      .then(function (response) {
+        console.log(response.data.subjects);
+        var list = response.data.subjects;
+        axios.post('//192.168.10.165:3000/douban/insert', {
+          params: {
+            list: list
+          }
+        })
+        .then(function (response) {
+          console.log(response.data);
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+        
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+    }); 
+
+    // 豆瓣 
+    document.querySelector('#btn6').addEventListener('click', function() {
+      axios.post('//192.168.10.165:3000/v2/movie/in_theater', {
+        params: {
+          start: 5,
+          count: 5
+        }
+      })
+      .then(function (response) {
+        console.log(response.data);
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+    }); 
     
   </script>
   
