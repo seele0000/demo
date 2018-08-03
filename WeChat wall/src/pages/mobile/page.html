@@ -1,0 +1,43 @@
+<div class="message">
+    <div class="dialog-box" v-if="isDialogShow">
+        <div class="dialog">
+            <div class="title">欢迎莅临</div>
+            <img src="./img/img1.png">
+            <button v-on:click="closeDialog">参与现场微信上墙互动，请点击此处</button>
+        </div>
+    </div>
+    <div class="flex-box">
+        <div class="flex-row" ref="commentBox">
+            <button class="more" v-on:click="getMore">点击获取更多信息</button>
+            <ul class="list" ref="commentList">
+                <!-- <li v-for="(item,index) in list" v-bind:id="item.id" v-bind:class="{me: item.isMe}"> -->
+                <li v-for="(item,index) in list" v-bind:id="item.id" v-bind:class="{me: item.isMe}"
+                    v-if="item.isShowLi">
+                    <div class="img-box">
+                        <!--<img src="">-->
+                        <img v-bind:src="decodeURIComponent(item.headimgurl)">
+                        <p>{{item.nickname}}</p>
+                    </div>
+                    <div class="content-box">
+                        <div class="content-infoes">
+                            <span class="font-blue">{{item.id}}楼</span>
+                            <div class="zan" v-on:click="zanAdd(item.time)" v-bind:class="{active: item.isZan}">
+                                <span class="num">{{item.zanNum}}</span>
+                            </div>
+                        </div>
+                        <div class="contents">
+                            {{item.content}}
+                        </div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <div class="submit-message">
+            <div class="inner-box">
+                <button class="refresh" v-on:click="refresh">刷新</button>
+                <input type="text" v-model="messageContent" v-on:focus="inputFocus()" v-on:blur="inputBlur()" ref="ipt">
+                <button class="submit" v-on:click="submit">提交</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,32 @@
+<div class="message-pc">
+	<div class="container">
+		<header>
+			<img src="./img/img1.png" class="logo">
+			<div class="right-block">
+				点击这里扫描二维码
+				<img src="./img/img-arrow.png" v-on:click="showQrcode">
+			</div>
+			<img class="qrcode" src="./img/img-qrcode.png" v-if="isShowQrcode">
+		</header>
+		<div class="ul-box" ref="ulBox" id="ulBox">
+			<ul class="list" ref="list">
+				<transition name="fade" v-for="item in list" :key="item.id">
+					<li :id="item.id" v-show="item.isShowLi">
+						<div class="img-box">
+							<img v-bind:src="decodeURIComponent(item.headimgurl)">
+							<p>{{item.nickname}}</p>
+						</div>
+						<div class="content-box">
+							<span class="close" v-on:click="closeLi(item.id)">×</span>
+							<div class="contents">
+								{{item.content}}
+							</div>
+						</div>
+					</li>
+				</transition>
+			</ul>
+		</div>
+		
+	</div>
+	
+</div>
